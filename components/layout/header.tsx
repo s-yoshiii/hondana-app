@@ -20,12 +20,16 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { logout } from "@/app/logout/actions";
 
-// TODO: #006 で認証状態管理を実装後、実際の認証状態に置き換える
-const isAuthenticated = false;
+export type HeaderUser = {
+  username: string;
+  avatarUrl: string | null;
+} | null;
 
-export function Header() {
+export function Header({ user }: { user: HeaderUser }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const isAuthenticated = !!user;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -53,7 +57,7 @@ export function Header() {
         {/* デスクトップナビゲーション */}
         <nav className="hidden md:flex items-center gap-2">
           {isAuthenticated ? (
-            <AuthenticatedNav />
+            <AuthenticatedNav user={user} />
           ) : (
             <UnauthenticatedNav />
           )}
@@ -92,10 +96,16 @@ export function Header() {
                         マイページ
                       </Link>
                     </Button>
-                    <Button variant="ghost" className="justify-start text-destructive">
-                      <LogOutIcon className="mr-2 h-4 w-4" />
-                      ログアウト
-                    </Button>
+                    <form action={logout}>
+                      <Button
+                        type="submit"
+                        variant="ghost"
+                        className="w-full justify-start text-destructive"
+                      >
+                        <LogOutIcon className="mr-2 h-4 w-4" />
+                        ログアウト
+                      </Button>
+                    </form>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-2">
@@ -133,14 +143,14 @@ function UnauthenticatedNav() {
   );
 }
 
-function AuthenticatedNav() {
+function AuthenticatedNav({ user }: { user: NonNullable<HeaderUser> }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" className="rounded-full">
           <Avatar className="h-8 w-8">
-            <AvatarImage src="" alt="プロフィール画像" />
-            <AvatarFallback>U</AvatarFallback>
+            <AvatarImage src={user.avatarUrl ?? ""} alt={user.username} />
+            <AvatarFallback>{user.username.charAt(0).toUpperCase()}</AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
@@ -152,9 +162,13 @@ function AuthenticatedNav() {
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="text-destructive">
-          <LogOutIcon className="mr-2 h-4 w-4" />
-          ログアウト
+        <DropdownMenuItem asChild>
+          <form action={logout} className="w-full">
+            <button type="submit" className="flex w-full items-center text-destructive">
+              <LogOutIcon className="mr-2 h-4 w-4" />
+              ログアウト
+            </button>
+          </form>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
