@@ -139,5 +139,6 @@ export async function addToBookshelf(
   }
 
   revalidatePath(`/books/${googleBooksId}`);
+  revalidatePath("/mypage");
   return { success: true };
 }

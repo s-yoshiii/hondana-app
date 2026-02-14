@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { BookOpenIcon, MessageSquareIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ProfileSection } from "@/components/mypage/profile-section";
+import { BookshelfList } from "@/components/mypage/bookshelf-list";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const metadata: Metadata = {
@@ -32,8 +33,8 @@ export default async function MyPage() {
     redirect("/login");
   }
 
-  // フォロー数・フォロワー数・読了数・レビュー数を並列取得
-  const [followingResult, followersResult, completedResult, reviewResult] =
+  // フォロー数・フォロワー数・読了数・レビュー数・本棚データを並列取得
+  const [followingResult, followersResult, completedResult, reviewResult, bookshelfResult] =
     await Promise.all([
       supabase
         .from("follows")
@@ -52,7 +53,32 @@ export default async function MyPage() {
         .from("reviews")
         .select("*, user_books!inner(*)", { count: "exact", head: true })
         .eq("user_books.user_id", user.id),
+      supabase
+        .from("user_books")
+        .select("id, status, rating, books(title, author, cover_image_url, google_books_id)")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false }),
     ]);
+
+  const bookshelfItems = (bookshelfResult.data ?? []).map((item) => {
+    const book = item.books as unknown as {
+      title: string;
+      author: string | null;
+      cover_image_url: string | null;
+      google_books_id: string | null;
+    };
+    return {
+      id: item.id,
+      status: item.status,
+      rating: item.rating,
+      google_books_id: book?.google_books_id ?? null,
+      book: {
+        title: book?.title ?? "不明な書籍",
+        author: book?.author ?? null,
+        cover_image_url: book?.cover_image_url ?? null,
+      },
+    };
+  });
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8">
@@ -78,11 +104,7 @@ export default async function MyPage() {
           </TabsTrigger>
         </TabsList>
         <TabsContent value="bookshelf">
-          <div className="flex min-h-[200px] items-center justify-center rounded-lg border border-dashed">
-            <p className="text-sm text-muted-foreground">
-              本棚に本を追加すると、ここに表示されます
-            </p>
-          </div>
+          <BookshelfList items={bookshelfItems} />
         </TabsContent>
         <TabsContent value="reviews">
           <div className="flex min-h-[200px] items-center justify-center rounded-lg border border-dashed">
