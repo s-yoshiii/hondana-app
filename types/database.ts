@@ -45,6 +45,7 @@ export type Database = {
           cover_image_url: string | null;
           publisher: string | null;
           published_date: string | null;
+          google_books_id: string | null;
           created_at: string;
         };
         Insert: {
@@ -55,6 +56,7 @@ export type Database = {
           cover_image_url?: string | null;
           publisher?: string | null;
           published_date?: string | null;
+          google_books_id?: string | null;
           created_at?: string;
         };
         Update: {
@@ -65,6 +67,7 @@ export type Database = {
           cover_image_url?: string | null;
           publisher?: string | null;
           published_date?: string | null;
+          google_books_id?: string | null;
           created_at?: string;
         };
         Relationships: [];
