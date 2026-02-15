@@ -8,6 +8,10 @@ const nextConfig: NextConfig = {
         hostname: "books.google.com",
         pathname: "/books/**",
       },
+      {
+        protocol: "https",
+        hostname: "cover.openbd.jp",
+      },
     ],
   },
 };
