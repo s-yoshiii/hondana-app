@@ -64,9 +64,10 @@ function normalizeVolume(volume: GoogleBooksVolume): GoogleBook {
 
 export async function searchBooks(
   query: string,
-  maxResults = 20,
+  maxResults = 40,
 ): Promise<GoogleBook[]> {
-  const url = `${GOOGLE_BOOKS_API_BASE}?q=${encodeURIComponent(query)}&maxResults=${maxResults}&printType=books`;
+  const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
+  const url = `${GOOGLE_BOOKS_API_BASE}?q=${encodeURIComponent(query)}&maxResults=${maxResults}&printType=books${apiKey ? `&key=${apiKey}` : ""}`;
 
   const res = await fetch(url, { next: { revalidate: 300 } });
 
@@ -86,7 +87,8 @@ export async function searchBooks(
 export async function getBookByGoogleId(
   googleBooksId: string,
 ): Promise<GoogleBook | null> {
-  const url = `${GOOGLE_BOOKS_API_BASE}/${encodeURIComponent(googleBooksId)}`;
+  const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
+  const url = `${GOOGLE_BOOKS_API_BASE}/${encodeURIComponent(googleBooksId)}${apiKey ? `?key=${apiKey}` : ""}`;
 
   const res = await fetch(url, { next: { revalidate: 3600 } });
 
