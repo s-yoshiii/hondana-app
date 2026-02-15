@@ -4,6 +4,7 @@ import { BookOpenIcon, MessageSquareIcon } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { ProfileSection } from "@/components/mypage/profile-section";
 import { BookshelfList } from "@/components/mypage/bookshelf-list";
+import { MyReviewList } from "@/components/mypage/my-review-list";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export const metadata: Metadata = {
@@ -33,8 +34,8 @@ export default async function MyPage() {
     redirect("/login");
   }
 
-  // フォロー数・フォロワー数・読了数・レビュー数・本棚データを並列取得
-  const [followingResult, followersResult, completedResult, reviewResult, bookshelfResult] =
+  // フォロー数・フォロワー数・読了数・レビュー数・本棚データ・レビューデータを並列取得
+  const [followingResult, followersResult, completedResult, reviewResult, bookshelfResult, myReviewsResult] =
     await Promise.all([
       supabase
         .from("follows")
@@ -58,7 +59,38 @@ export default async function MyPage() {
         .select("id, status, rating, books(title, author, cover_image_url, google_books_id)")
         .eq("user_id", user.id)
         .order("updated_at", { ascending: false }),
+      supabase
+        .from("reviews")
+        .select(
+          "id, content, created_at, user_books!inner(rating, user_id, books!inner(title, author, cover_image_url, google_books_id))",
+        )
+        .eq("user_books.user_id", user.id)
+        .order("created_at", { ascending: false }),
     ]);
+
+  const myReviewItems = (myReviewsResult.data ?? []).map((item) => {
+    const ub = item.user_books as unknown as {
+      rating: number | null;
+      books: {
+        title: string;
+        author: string | null;
+        cover_image_url: string | null;
+        google_books_id: string | null;
+      };
+    };
+    return {
+      reviewId: item.id,
+      content: item.content,
+      createdAt: item.created_at,
+      rating: ub.rating,
+      googleBooksId: ub.books?.google_books_id ?? null,
+      book: {
+        title: ub.books?.title ?? "不明な書籍",
+        author: ub.books?.author ?? null,
+        coverImageUrl: ub.books?.cover_image_url ?? null,
+      },
+    };
+  });
 
   const bookshelfItems = (bookshelfResult.data ?? []).map((item) => {
     const book = item.books as unknown as {
@@ -107,11 +139,7 @@ export default async function MyPage() {
           <BookshelfList items={bookshelfItems} />
         </TabsContent>
         <TabsContent value="reviews">
-          <div className="flex min-h-[200px] items-center justify-center rounded-lg border border-dashed">
-            <p className="text-sm text-muted-foreground">
-              レビューを投稿すると、ここに表示されます
-            </p>
-          </div>
+          <MyReviewList items={myReviewItems} />
         </TabsContent>
       </Tabs>
     </div>
