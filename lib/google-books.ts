@@ -66,7 +66,7 @@ export async function searchBooks(
   query: string,
   maxResults = 20,
 ): Promise<GoogleBook[]> {
-  const url = `${GOOGLE_BOOKS_API_BASE}?q=${encodeURIComponent(query)}&maxResults=${maxResults}&printType=books&langRestrict=ja`;
+  const url = `${GOOGLE_BOOKS_API_BASE}?q=${encodeURIComponent(query)}&maxResults=${maxResults}&printType=books`;
 
   const res = await fetch(url, { next: { revalidate: 300 } });
 
