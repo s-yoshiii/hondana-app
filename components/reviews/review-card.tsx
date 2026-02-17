@@ -47,12 +47,30 @@ export function ReviewCard({
     <div className="rounded-lg border p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Avatar className="h-8 w-8">
-            <AvatarImage src={reviewerAvatarUrl ?? undefined} />
-            <AvatarFallback>{reviewerName.charAt(0)}</AvatarFallback>
-          </Avatar>
+          {reviewerUserId ? (
+            <Link href={`/users/${reviewerUserId}`}>
+              <Avatar className="h-8 w-8">
+                <AvatarImage src={reviewerAvatarUrl ?? undefined} />
+                <AvatarFallback>{reviewerName.charAt(0)}</AvatarFallback>
+              </Avatar>
+            </Link>
+          ) : (
+            <Avatar className="h-8 w-8">
+              <AvatarImage src={reviewerAvatarUrl ?? undefined} />
+              <AvatarFallback>{reviewerName.charAt(0)}</AvatarFallback>
+            </Avatar>
+          )}
           <div>
-            <p className="text-sm font-medium">{reviewerName}</p>
+            {reviewerUserId ? (
+              <Link
+                href={`/users/${reviewerUserId}`}
+                className="text-sm font-medium hover:underline"
+              >
+                {reviewerName}
+              </Link>
+            ) : (
+              <p className="text-sm font-medium">{reviewerName}</p>
+            )}
             <p className="text-xs text-muted-foreground">{formattedDate}</p>
           </div>
         </div>

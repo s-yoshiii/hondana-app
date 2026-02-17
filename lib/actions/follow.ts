@@ -29,7 +29,9 @@ export async function followUser(targetUserId: string): Promise<{ error?: string
     return { error: "フォローに失敗しました" };
   }
 
-  revalidatePath("/mypage");
+  revalidatePath("/mypage", "layout");
+  revalidatePath(`/users/${targetUserId}`);
+  revalidatePath("/books", "layout");
   return {};
 }
 
@@ -53,6 +55,8 @@ export async function unfollowUser(targetUserId: string): Promise<{ error?: stri
     return { error: "フォロー解除に失敗しました" };
   }
 
-  revalidatePath("/mypage");
+  revalidatePath("/mypage", "layout");
+  revalidatePath(`/users/${targetUserId}`);
+  revalidatePath("/books", "layout");
   return {};
 }
