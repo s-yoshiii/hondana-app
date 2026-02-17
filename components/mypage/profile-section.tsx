@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PencilIcon, BookOpenIcon, MessageSquareIcon, UsersIcon } from "lucide-react";
+import { PencilIcon, BookOpenIcon, MessageSquareIcon, UsersIcon, StarIcon, BookMarkedIcon, BookHeadphonesIcon, ArchiveIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +12,13 @@ type ProfileSectionProps = {
   followersCount: number;
   completedCount: number;
   reviewCount: number;
+  averageRating: number | null;
+  statusCounts: {
+    want_to_read: number;
+    reading: number;
+    completed: number;
+    stacked: number;
+  };
 };
 
 export function ProfileSection({
@@ -22,6 +29,8 @@ export function ProfileSection({
   followersCount,
   completedCount,
   reviewCount,
+  averageRating,
+  statusCounts,
 }: ProfileSectionProps) {
   return (
     <Card>
@@ -67,7 +76,7 @@ export function ProfileSection({
             </div>
 
             {/* 統計 */}
-            <div className="mt-3 flex items-center justify-center gap-4 sm:justify-start">
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-4 sm:justify-start">
               <div className="flex items-center gap-1 text-sm">
                 <BookOpenIcon className="h-4 w-4 text-muted-foreground" />
                 <span className="font-semibold">{completedCount}</span>
@@ -77,6 +86,32 @@ export function ProfileSection({
                 <MessageSquareIcon className="h-4 w-4 text-muted-foreground" />
                 <span className="font-semibold">{reviewCount}</span>
                 <span className="text-muted-foreground">件レビュー</span>
+              </div>
+              {averageRating !== null && (
+                <div className="flex items-center gap-1 text-sm">
+                  <StarIcon className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                  <span className="font-semibold">{averageRating.toFixed(1)}</span>
+                  <span className="text-muted-foreground">平均評価</span>
+                </div>
+              )}
+            </div>
+
+            {/* ステータス別冊数 */}
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-3 sm:justify-start">
+              <div className="flex items-center gap-1 text-sm">
+                <BookMarkedIcon className="h-4 w-4 text-muted-foreground" />
+                <span className="font-semibold">{statusCounts.want_to_read}</span>
+                <span className="text-muted-foreground">読みたい</span>
+              </div>
+              <div className="flex items-center gap-1 text-sm">
+                <BookHeadphonesIcon className="h-4 w-4 text-muted-foreground" />
+                <span className="font-semibold">{statusCounts.reading}</span>
+                <span className="text-muted-foreground">読書中</span>
+              </div>
+              <div className="flex items-center gap-1 text-sm">
+                <ArchiveIcon className="h-4 w-4 text-muted-foreground" />
+                <span className="font-semibold">{statusCounts.stacked}</span>
+                <span className="text-muted-foreground">積読</span>
               </div>
             </div>
           </div>

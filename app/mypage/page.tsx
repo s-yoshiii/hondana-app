@@ -34,8 +34,8 @@ export default async function MyPage() {
     redirect("/login");
   }
 
-  // フォロー数・フォロワー数・読了数・レビュー数・本棚データ・レビューデータを並列取得
-  const [followingResult, followersResult, completedResult, reviewResult, bookshelfResult, myReviewsResult] =
+  // フォロー数・フォロワー数・レビュー数・本棚データ・レビューデータ・ステータス別集計を並列取得
+  const [followingResult, followersResult, reviewResult, bookshelfResult, myReviewsResult, userBooksResult] =
     await Promise.all([
       supabase
         .from("follows")
@@ -45,11 +45,6 @@ export default async function MyPage() {
         .from("follows")
         .select("*", { count: "exact", head: true })
         .eq("following_id", user.id),
-      supabase
-        .from("user_books")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .eq("status", "completed"),
       supabase
         .from("reviews")
         .select("*, user_books!inner(*)", { count: "exact", head: true })
@@ -66,7 +61,33 @@ export default async function MyPage() {
         )
         .eq("user_books.user_id", user.id)
         .order("created_at", { ascending: false }),
+      supabase
+        .from("user_books")
+        .select("status, rating")
+        .eq("user_id", user.id),
     ]);
+
+  // ステータス別冊数・平均評価を算出
+  const userBooksData = userBooksResult.data ?? [];
+  const statusCounts = {
+    want_to_read: 0,
+    reading: 0,
+    completed: 0,
+    stacked: 0,
+  };
+  const ratings: number[] = [];
+  for (const ub of userBooksData) {
+    if (ub.status in statusCounts) {
+      statusCounts[ub.status as keyof typeof statusCounts]++;
+    }
+    if (ub.rating != null) {
+      ratings.push(ub.rating);
+    }
+  }
+  const averageRating =
+    ratings.length > 0
+      ? ratings.reduce((a, b) => a + b, 0) / ratings.length
+      : null;
 
   const myReviewItems = (myReviewsResult.data ?? []).map((item) => {
     const ub = item.user_books as unknown as {
@@ -120,8 +141,10 @@ export default async function MyPage() {
         bio={profile.bio}
         followingCount={followingResult.count ?? 0}
         followersCount={followersResult.count ?? 0}
-        completedCount={completedResult.count ?? 0}
+        completedCount={statusCounts.completed}
         reviewCount={reviewResult.count ?? 0}
+        averageRating={averageRating}
+        statusCounts={statusCounts}
       />
 
       <Tabs defaultValue="bookshelf" className="mt-6">
