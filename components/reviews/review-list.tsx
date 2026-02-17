@@ -75,11 +75,14 @@ export function ReviewList({
               key={review.id}
               reviewerName={review.reviewerName}
               reviewerAvatarUrl={review.reviewerAvatarUrl}
+              reviewerUserId={review.reviewerUserId}
               rating={review.rating}
               content={review.content}
               createdAt={review.createdAt}
               canViewFull={canViewFull}
               isOwner={isOwner}
+              isFollowing={isFollowing}
+              isLoggedIn={!!currentUserId}
               editUrl={
                 isOwner
                   ? `/books/${googleBooksId}/review/edit`

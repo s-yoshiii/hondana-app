@@ -64,15 +64,21 @@ export function ProfileSection({
 
             {/* フォロー情報 */}
             <div className="mt-3 flex items-center justify-center gap-4 sm:justify-start">
-              <div className="flex items-center gap-1 text-sm">
+              <Link
+                href="/mypage/following"
+                className="flex items-center gap-1 text-sm hover:underline"
+              >
                 <UsersIcon className="h-4 w-4 text-muted-foreground" />
                 <span className="font-semibold">{followingCount}</span>
                 <span className="text-muted-foreground">フォロー</span>
-              </div>
-              <div className="flex items-center gap-1 text-sm">
+              </Link>
+              <Link
+                href="/mypage/followers"
+                className="flex items-center gap-1 text-sm hover:underline"
+              >
                 <span className="font-semibold">{followersCount}</span>
                 <span className="text-muted-foreground">フォロワー</span>
-              </div>
+              </Link>
             </div>
 
             {/* 統計 */}

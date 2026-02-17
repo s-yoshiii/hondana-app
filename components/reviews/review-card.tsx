@@ -2,26 +2,33 @@ import Link from "next/link";
 import { PencilIcon, LockIcon } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { StarRating } from "@/components/books/star-rating";
+import { FollowButton } from "@/components/follow/follow-button";
 
 type ReviewCardProps = {
   reviewerName: string;
   reviewerAvatarUrl: string | null;
+  reviewerUserId?: string;
   rating: number | null;
   content: string;
   createdAt: string;
   canViewFull: boolean;
   isOwner: boolean;
+  isFollowing?: boolean;
+  isLoggedIn?: boolean;
   editUrl?: string;
 };
 
 export function ReviewCard({
   reviewerName,
   reviewerAvatarUrl,
+  reviewerUserId,
   rating,
   content,
   createdAt,
   canViewFull,
   isOwner,
+  isFollowing = false,
+  isLoggedIn = false,
   editUrl,
 }: ReviewCardProps) {
   const displayContent = canViewFull
@@ -67,9 +74,16 @@ export function ReviewCard({
           {displayContent}
         </p>
         {!canViewFull && content.length > 100 && (
-          <div className="mt-2 flex items-center gap-1 text-xs text-muted-foreground">
+          <div className="mt-2 flex items-center gap-2 text-xs text-muted-foreground">
             <LockIcon className="h-3 w-3" />
             <span>続きを読むにはフォローが必要です</span>
+            {reviewerUserId && !isOwner && (
+              <FollowButton
+                targetUserId={reviewerUserId}
+                isFollowing={isFollowing}
+                isLoggedIn={isLoggedIn}
+              />
+            )}
           </div>
         )}
       </div>
