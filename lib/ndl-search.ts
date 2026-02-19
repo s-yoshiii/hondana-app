@@ -12,7 +12,8 @@ export async function searchNdlBooks(
 ): Promise<GoogleBook[]> {
   // CQL: タイトル OR 著者で検索、図書に限定
   const cql = `(title="${query}" OR creator="${query}") AND mediatype="books"`;
-  const url = `${NDL_API_BASE}?operation=searchRetrieve&query=${encodeURIComponent(cql)}&recordSchema=dcndl&maximumRecords=${maxResults}`;
+  // recordPacking=string でレコード内容をエンティティエンコードして取得
+  const url = `${NDL_API_BASE}?operation=searchRetrieve&query=${encodeURIComponent(cql)}&recordSchema=dcndl&maximumRecords=${maxResults}&recordPacking=string`;
 
   const res = await fetch(url, { next: { revalidate: 300 } });
 
@@ -28,8 +29,8 @@ export async function searchNdlBooks(
 function parseNdlResponse(xml: string): GoogleBook[] {
   const books: GoogleBook[] = [];
 
-  // <recordData>...</recordData> ブロックを抽出
-  const recordDataBlocks = xml.match(/<recordData>[\s\S]*?<\/recordData>/g);
+  // <srw:recordData>...</srw:recordData> ブロックを抽出（名前空間プレフィックスに対応）
+  const recordDataBlocks = xml.match(/<(?:\w+:)?recordData[^>]*>[\s\S]*?<\/(?:\w+:)?recordData>/g);
   if (!recordDataBlocks) return books;
 
   for (const block of recordDataBlocks) {
