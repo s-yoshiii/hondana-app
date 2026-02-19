@@ -82,11 +82,17 @@ async function searchGoogleBooks(query: string): Promise<GoogleBook[]> {
     ),
   ]);
 
+  const seenIds = new Set<string>();
   const results: GoogleBook[] = [];
   for (const res of [res1, res2]) {
     if (!res.ok) continue;
     const data: GoogleBooksSearchResponse = await res.json();
-    if (data.items) results.push(...data.items.map(normalizeVolume));
+    if (!data.items) continue;
+    for (const item of data.items) {
+      if (seenIds.has(item.id)) continue;
+      seenIds.add(item.id);
+      results.push(normalizeVolume(item));
+    }
   }
   return results;
 }
