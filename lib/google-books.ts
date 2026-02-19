@@ -65,36 +65,34 @@ function normalizeVolume(volume: GoogleBooksVolume): GoogleBook {
   };
 }
 
-/** Google Books API のみで検索 */
-async function searchGoogleBooks(
-  query: string,
-  maxResults = 40,
-): Promise<GoogleBook[]> {
+/** Google Books API を 2 ページ並列取得して最大 80 件返す */
+async function searchGoogleBooks(query: string): Promise<GoogleBook[]> {
   const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
-  const url = `${GOOGLE_BOOKS_API_BASE}?q=${encodeURIComponent(query)}&maxResults=${maxResults}&printType=books${apiKey ? `&key=${apiKey}` : ""}`;
+  const base = `${GOOGLE_BOOKS_API_BASE}?q=${encodeURIComponent(query)}&maxResults=40&printType=books${apiKey ? `&key=${apiKey}` : ""}`;
 
-  const res = await fetch(url, { next: { revalidate: 300 } });
+  // startIndex=0 と startIndex=40 を並列で取得
+  const [res1, res2] = await Promise.all([
+    fetch(`${base}&startIndex=0`, { next: { revalidate: 300 } }),
+    fetch(`${base}&startIndex=40`, { next: { revalidate: 300 } }),
+  ]);
 
-  if (!res.ok) return [];
-
-  const data: GoogleBooksSearchResponse = await res.json();
-
-  if (!data.items || data.totalItems === 0) return [];
-
-  return data.items.map(normalizeVolume);
+  const results: GoogleBook[] = [];
+  for (const res of [res1, res2]) {
+    if (!res.ok) continue;
+    const data: GoogleBooksSearchResponse = await res.json();
+    if (data.items) results.push(...data.items.map(normalizeVolume));
+  }
+  return results;
 }
 
 /**
  * Google Books + NDL Search を並列検索し、結果をマージして返す
  * NDL の結果は OpenBD で書影を補完する
  */
-export async function searchBooks(
-  query: string,
-  maxResults = 40,
-): Promise<GoogleBook[]> {
-  // Google Books と NDL Search を並列検索
+export async function searchBooks(query: string): Promise<GoogleBook[]> {
+  // Google Books（最大80件）と NDL Search（最大100件）を並列検索
   const [googleResults, ndlResults] = await Promise.all([
-    searchGoogleBooks(query, maxResults),
+    searchGoogleBooks(query),
     searchNdlBooks(query).catch(() => [] as GoogleBook[]),
   ]);
 

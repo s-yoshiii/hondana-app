@@ -4,19 +4,33 @@ import { BookSearchResults } from "@/components/book-search-results";
 import { PopularBooks, type PopularBook } from "@/components/top/popular-books";
 import { LatestReviews, type LatestReview } from "@/components/top/latest-reviews";
 
+const PAGE_SIZE = 20;
+
 export default async function Home({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
 }) {
-  const { q } = await searchParams;
+  const { q, page: pageParam } = await searchParams;
   const query = q?.trim() || "";
+  const currentPage = Math.max(1, parseInt(pageParam ?? "1", 10));
 
   if (query) {
-    const books = await searchBooks(query);
+    const allBooks = await searchBooks(query);
+    const totalCount = allBooks.length;
+    const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+    const safePage = Math.min(currentPage, totalPages);
+    const books = allBooks.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
+
     return (
       <div className="mx-auto max-w-5xl px-4 py-8">
-        <BookSearchResults query={query} books={books} />
+        <BookSearchResults
+          query={query}
+          books={books}
+          currentPage={safePage}
+          totalCount={totalCount}
+          totalPages={totalPages}
+        />
       </div>
     );
   }

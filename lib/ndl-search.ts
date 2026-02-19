@@ -8,7 +8,7 @@ const NDL_API_BASE = "https://ndlsearch.ndl.go.jp/api/sru";
  */
 export async function searchNdlBooks(
   query: string,
-  maxResults = 30,
+  maxResults = 100,
 ): Promise<GoogleBook[]> {
   // CQL: タイトル OR 著者で検索、図書に限定
   const cql = `(title="${query}" OR creator="${query}") AND mediatype="books"`;
