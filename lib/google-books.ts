@@ -65,15 +65,21 @@ function normalizeVolume(volume: GoogleBooksVolume): GoogleBook {
   };
 }
 
-/** Google Books API を 2 ページ並列取得して最大 80 件返す */
+/** Google Books API を並列取得（一般検索 + 著者名検索）して最大 80 件返す */
 async function searchGoogleBooks(query: string): Promise<GoogleBook[]> {
   const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
-  const base = `${GOOGLE_BOOKS_API_BASE}?q=${encodeURIComponent(query)}&maxResults=40&printType=books${apiKey ? `&key=${apiKey}` : ""}`;
+  const params = `&maxResults=40&printType=books${apiKey ? `&key=${apiKey}` : ""}`;
 
-  // startIndex=0 と startIndex=40 を並列で取得
+  // 一般検索（タイトル・著者・説明文など）と著者名限定検索を並列取得
   const [res1, res2] = await Promise.all([
-    fetch(`${base}&startIndex=0`, { next: { revalidate: 300 } }),
-    fetch(`${base}&startIndex=40`, { next: { revalidate: 300 } }),
+    fetch(
+      `${GOOGLE_BOOKS_API_BASE}?q=${encodeURIComponent(query)}&startIndex=0${params}`,
+      { next: { revalidate: 300 } },
+    ),
+    fetch(
+      `${GOOGLE_BOOKS_API_BASE}?q=${encodeURIComponent(`inauthor:${query}`)}${params}`,
+      { next: { revalidate: 300 } },
+    ),
   ]);
 
   const results: GoogleBook[] = [];
@@ -134,6 +140,16 @@ export async function searchBooks(query: string): Promise<GoogleBook[]> {
     seenTitles.add(book.title.toLowerCase());
     merged.push(book);
   }
+
+  // 関連度スコアで再ランキング（著者一致 > タイトル一致 > その他）
+  // 同スコア内では元の順序を維持（stable sort）
+  const queryLower = query.toLowerCase();
+  const relevanceScore = (book: GoogleBook): number => {
+    if (book.author?.toLowerCase().includes(queryLower)) return 2;
+    if (book.title.toLowerCase().includes(queryLower)) return 1;
+    return 0;
+  };
+  merged.sort((a, b) => relevanceScore(b) - relevanceScore(a));
 
   return merged;
 }
