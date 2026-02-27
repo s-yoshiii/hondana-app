@@ -3,6 +3,7 @@
 import { useOptimistic, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { UserPlusIcon, UserCheckIcon } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { followUser, unfollowUser } from "@/lib/actions/follow";
 
@@ -30,9 +31,17 @@ export function FollowButton({
     startTransition(async () => {
       setOptimisticFollowing(!optimisticFollowing);
       if (optimisticFollowing) {
-        await unfollowUser(targetUserId);
+        const result = await unfollowUser(targetUserId);
+        if (result.error) {
+          setOptimisticFollowing(true);
+          toast.error(result.error);
+        }
       } else {
-        await followUser(targetUserId);
+        const result = await followUser(targetUserId);
+        if (result.error) {
+          setOptimisticFollowing(false);
+          toast.error(result.error);
+        }
       }
     });
   }
