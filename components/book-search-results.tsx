@@ -10,6 +10,7 @@ type BookSearchResultsProps = {
   currentPage: number;
   totalCount: number;
   totalPages: number;
+  buildPageUrl?: (page: number) => string;
 };
 
 export function BookSearchResults({
@@ -18,8 +19,11 @@ export function BookSearchResults({
   currentPage,
   totalCount,
   totalPages,
+  buildPageUrl,
 }: BookSearchResultsProps) {
   const encodedQuery = encodeURIComponent(query);
+  const prevUrl = buildPageUrl ? buildPageUrl(currentPage - 1) : `/?q=${encodedQuery}&page=${currentPage - 1}`;
+  const nextUrl = buildPageUrl ? buildPageUrl(currentPage + 1) : `/?q=${encodedQuery}&page=${currentPage + 1}`;
 
   return (
     <div>
@@ -52,7 +56,7 @@ export function BookSearchResults({
                     前へ
                   </span>
                 ) : (
-                  <Link href={`/?q=${encodedQuery}&page=${currentPage - 1}`} className="flex items-center gap-1">
+                  <Link href={prevUrl} className="flex items-center gap-1">
                     <ChevronLeftIcon className="h-4 w-4" />
                     前へ
                   </Link>
@@ -70,7 +74,7 @@ export function BookSearchResults({
                     <ChevronRightIcon className="h-4 w-4" />
                   </span>
                 ) : (
-                  <Link href={`/?q=${encodedQuery}&page=${currentPage + 1}`} className="flex items-center gap-1">
+                  <Link href={nextUrl} className="flex items-center gap-1">
                     次へ
                     <ChevronRightIcon className="h-4 w-4" />
                   </Link>

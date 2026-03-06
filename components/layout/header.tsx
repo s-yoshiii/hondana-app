@@ -42,7 +42,7 @@ export function Header({ user }: { user: HeaderUser }) {
 
         {/* 検索バー（デスクトップ） */}
         <div className="hidden md:flex flex-1 max-w-sm">
-          <form action="/" method="GET" className="relative w-full">
+          <form action="/search" method="GET" className="relative w-full">
             <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
@@ -80,7 +80,7 @@ export function Header({ user }: { user: HeaderUser }) {
               <div className="flex flex-col gap-4 pt-4">
                 {/* 検索バー（モバイル） */}
                 <form
-                  action="/"
+                  action="/search"
                   method="GET"
                   onSubmit={() => setMobileOpen(false)}
                   className="relative"

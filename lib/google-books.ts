@@ -160,6 +160,60 @@ export async function searchBooks(query: string): Promise<GoogleBook[]> {
   return merged;
 }
 
+export type AdvancedSearchParams = {
+  q?: string;
+  title?: string;
+  author?: string;
+  subject?: string;
+  year?: string;
+};
+
+/** 構造化検索クエリで Google Books API を呼び出す（単純な1リクエスト） */
+async function fetchGoogleBooksRaw(query: string): Promise<GoogleBook[]> {
+  const apiKey = process.env.GOOGLE_BOOKS_API_KEY;
+  const params = `&maxResults=40&printType=books${apiKey ? `&key=${apiKey}` : ""}`;
+
+  const res = await fetch(
+    `${GOOGLE_BOOKS_API_BASE}?q=${encodeURIComponent(query)}&startIndex=0${params}`,
+    { next: { revalidate: 300 } },
+  );
+
+  if (!res.ok) return [];
+  const data: GoogleBooksSearchResponse = await res.json();
+  return (data.items ?? []).map(normalizeVolume);
+}
+
+/**
+ * 高度な絞り込み検索: タイトル・著者名・ジャンル・出版年に対応
+ * 構造化パラメータが指定された場合は Google Books オペレータ検索を使用
+ * 一般キーワードのみの場合は searchBooks (Google + NDL) を使用
+ */
+export async function searchBooksAdvanced(params: AdvancedSearchParams): Promise<GoogleBook[]> {
+  const hasStructuredParams = params.title || params.author || params.subject;
+
+  let results: GoogleBook[];
+  if (!hasStructuredParams && params.q) {
+    results = await searchBooks(params.q);
+  } else {
+    const parts: string[] = [];
+    if (params.title) parts.push(`intitle:${params.title}`);
+    if (params.author) parts.push(`inauthor:${params.author}`);
+    if (params.subject) parts.push(`subject:${params.subject}`);
+    if (params.q) parts.push(params.q);
+    if (parts.length === 0) return [];
+    results = await fetchGoogleBooksRaw(parts.join(" "));
+  }
+
+  // 出版年でポストフィルタリング
+  if (params.year) {
+    results = results.filter(
+      (book) => book.publishedDate?.startsWith(params.year!) ?? false,
+    );
+  }
+
+  return results;
+}
+
 export async function getBookByGoogleId(
   googleBooksId: string,
 ): Promise<GoogleBook | null> {
