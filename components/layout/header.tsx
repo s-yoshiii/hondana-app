@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { BookOpenIcon, MenuIcon, SearchIcon, LogOutIcon, UserIcon } from "lucide-react";
+import { BookOpenIcon, MenuIcon, SearchIcon, LogOutIcon, UserIcon, SlidersHorizontalIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -40,9 +40,9 @@ export function Header({ user }: { user: HeaderUser }) {
           <span className="font-mono text-lg font-bold tracking-widest">HONDANA</span>
         </Link>
 
-        {/* 検索バー（デスクトップ） */}
-        <div className="hidden md:flex flex-1 max-w-sm">
-          <form action="/search" method="GET" className="relative w-full">
+        {/* 検索バー + 詳細検索ボタン（デスクトップ） */}
+        <div className="hidden md:flex flex-1 max-w-sm items-center gap-2">
+          <form action="/search" method="GET" className="relative flex-1">
             <SearchIcon className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
@@ -51,6 +51,12 @@ export function Header({ user }: { user: HeaderUser }) {
               className="pl-9"
             />
           </form>
+          <Button variant="ghost" size="sm" asChild className="shrink-0">
+            <Link href="/search" className="flex items-center gap-1">
+              <SlidersHorizontalIcon className="h-4 w-4" />
+              詳細検索
+            </Link>
+          </Button>
         </div>
 
         <div className="flex-1 md:hidden" />
@@ -93,6 +99,14 @@ export function Header({ user }: { user: HeaderUser }) {
                     className="pl-9"
                   />
                 </form>
+
+                {/* 詳細検索リンク（モバイル） */}
+                <Button variant="outline" className="w-full justify-start" asChild>
+                  <Link href="/search" onClick={() => setMobileOpen(false)}>
+                    <SlidersHorizontalIcon className="mr-2 h-4 w-4" />
+                    詳細検索
+                  </Link>
+                </Button>
 
                 {/* ナビゲーション（モバイル） */}
                 {isAuthenticated ? (

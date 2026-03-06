@@ -68,8 +68,10 @@ export function BookDetailInfo({
         )}
 
         {book.description && (
-          <p className="mt-4 text-sm leading-relaxed text-muted-foreground line-clamp-6">
-            {book.description}
+          <p className="mt-4 whitespace-pre-line text-sm leading-relaxed text-muted-foreground line-clamp-6">
+            {book.description
+              .replace(/<br\s*\/?>/gi, "\n")
+              .replace(/<[^>]+>/g, "")}
           </p>
         )}
       </div>
